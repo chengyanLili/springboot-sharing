@@ -1,7 +1,11 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 Vue.use(VueRouter)
+const originalPush = VueRouter.prototype.push
 
+VueRouter.prototype.push = function push(location) {
+    return originalPush.call(this, location).catch(err => err)
+}
 const routes = [
     {//后续的页面都会继承这个路由
         path:'/',
@@ -24,11 +28,38 @@ const routes = [
                 component:() => import('../src/views/my.vue')
             },
             {
-                path:'/source',
-                name:'source',
-                component:() => import('../src/views/source.vue')
-            }
-        ]
+                path:'/sourceManage',
+                name:'sourceManage',
+                component:() => import('../src/views/source/manage/sourceManage')
+            },
+
+
+        ],
+    },
+    {
+        path:'/login',
+        name:'login',
+        component:() => import('../src/views/login/login')
+    },
+    {
+        path:'/register',
+        name:'register',
+        component:() => import('../src/views/register/register')
+    },
+    {
+        path:'/sourceShare',
+        name:'sourceShare',
+        component:() => import('@/views/frontVue/sourceShare')
+    },
+    {
+        path:'/userSelf',
+        name:'userSelf',
+        component:() => import('../src/views/frontVue/userSelf')
+    },
+    {
+        path:'/publish',
+        name:'publish',
+        component:() => import('../src/views/frontVue/publish')
     },
 
 

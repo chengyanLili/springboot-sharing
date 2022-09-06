@@ -10,19 +10,35 @@
           border
           style="width: 100%; height: 400px">
         <el-table-column
-            prop="username"
-            label="用户名">
+            prop="name"
+            label="资源名称">
         </el-table-column>
         <el-table-column
-            prop="identify"
-            label="是否为管理员">
+            prop="title"
+            label="资源主题">
+        </el-table-column>
+        <el-table-column
+            prop="url"
+            label="url地址">
+        </el-table-column>
+        <el-table-column
+            fixed="right"
+            label="状态">
+          <template slot-scope="scope">
+            <el-button v-if="scope.row.state == 0" type="warning" size="small">审核中</el-button>
+            <el-button v-if="scope.row.state == 1" type="primary" size="small">已发布</el-button>
+          </template>
         </el-table-column>
         <el-table-column
             fixed="right"
             label="操作">
           <template slot-scope="scope">
-            <el-button @click="handleClick(scope.row)" type="text" size="small">删除</el-button>
-            <el-button type="text" size="small">设为管理员</el-button>
+            <el-popconfirm
+                title="这是一段内容确定删除吗？"
+            >
+            <el-button slot="reference" @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+            </el-popconfirm>
+              <el-button style="margin-left: 20px" type="text" size="small">设为管理员</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -46,7 +62,7 @@
 import request from "@/utils/request";
 
 export default {
-  name: 'Users',
+  name: 'sourceManage',
   data () {
     return {
       formInline: {
@@ -58,7 +74,18 @@ export default {
       },
       currentPage4: 4,
       value: '',
-      tableData: [],
+      tableData: [
+        {
+          name:'尴尬',
+          title:'哈哈',
+          state:0
+        },
+        {
+          name:'略略略',
+          title:'呃呃',
+          state:1
+        }
+      ],
       input:''
     }
   },
@@ -79,7 +106,7 @@ export default {
     })
   },
   methods: {
-    handleClick(row) {
+    handleDelete(row) {
       console.log(row);
     },
     onSubmit () {

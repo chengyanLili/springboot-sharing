@@ -7,7 +7,7 @@
         @open="handleOpen" 
         @close="handleClose" 
         >
-      <h3>高校资源共享平台</h3>
+      <h3>高校教学资源共享平台</h3>
         <el-menu-item @click="clickMenu(item)" 
         v-for="item in noChildren" :index="item.path + ''" :key="item.path">
             <i :class="'el-icon-' + item.icon"></i>
@@ -19,7 +19,7 @@
                 <span slot="title">{{ item.lable }}</span>
             </template>
             <el-menu-item-group v-for="(item, subIndex) in item.children" :key="item.path">
-                <el-menu-item :index="item.path">{{ item.lable }}</el-menu-item>
+                <el-menu-item :index="item.path"  @click="toChildren(item)">{{ item.lable }}</el-menu-item>
             </el-menu-item-group>
         </el-submenu>
     </el-menu>
@@ -38,6 +38,13 @@ export default {
                     icon: 's-home',
                   url:'home/home'
                 },
+              {
+                path: '/sourceShare',
+                name: 'sourceShare',
+                lable: '资源共享',
+                icon: 's-home',
+                url:'share/share'
+              },
                  {
                     path: '/user',
                     name: 'user',
@@ -46,13 +53,6 @@ export default {
                    url:'user/user'
                 },
               {
-                path: '/source',
-                name: 'source',
-                lable: '资源管理',
-                icon: 'picture',
-                url:'source/source'
-              },
-              {
                 path: '/my',
                 name: 'my',
                 lable: '我的中心',
@@ -60,24 +60,11 @@ export default {
                 url:'my/my'
               },
                 {
-                    lable: '其他',
-                    icon: 'location',
-                    children: [
-                        {
-                            path: '/page1',
-                            name: 'Page1',
-                            lable: '页面1',
-                            icon: 'setting',
-                            url: 'Other/PageOne'
-                        },
-                        {
-                            path: '/page2',
-                            name: 'Page2',
-                            lable: '页面2',
-                            icon: 'setting',
-                            url: 'Other/PageTwo'
-                        },
-                    ]
+                  path:'/sourceManage',
+                  name:'sourceManage',
+                    lable: '教学资源管理',
+                    icon: 's-management',
+                  url:'sourceManage/sourceManage'
                 },
             ]
         };
@@ -88,7 +75,8 @@ export default {
             return this.menu.filter(item => !item.children)
         },
         hasChildren() {
-            return this.menu.filter(item => item.children)
+            let hasChildren = this.menu.filter(item => item.children)
+          return hasChildren
         },
         //
         isCollapse(){
@@ -106,7 +94,12 @@ export default {
             this.$router.push({
                 name:item.name
             })
-        }
+        },
+      toChildren(item){
+        this.$router.push({
+          name:item.name
+        })
+      }
     }
 }
 </script>
