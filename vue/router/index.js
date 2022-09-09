@@ -10,23 +10,24 @@ const routes = [
     {//后续的页面都会继承这个路由
         path:'/',
         name:'Main',
+        redirect:'/login',
         component:()=>import('../src/views/Main.vue'),
         children:[
-            {
-                path:'/home',
-                name:'home',
-                component:() => import('../src/views/home.vue')
-            },
+            // {
+            //     path:'/home',
+            //     name:'home',
+            //     component:() => import('../src/views/home.vue')
+            // },
             {
                 path:'/user',
                 name:'user',
                 component:() => import('../src/views/user.vue')
             },
-            {
-                path:'/my',
-                name:'my',
-                component:() => import('../src/views/my.vue')
-            },
+            // {
+            //     path:'/my',
+            //     name:'my',
+            //     component:() => import('../src/views/my.vue')
+            // },
             {
                 path:'/sourceManage',
                 name:'sourceManage',
@@ -57,10 +58,20 @@ const routes = [
         component:() => import('../src/views/frontVue/userSelf')
     },
     {
-        path:'/publish',
-        name:'publish',
-        component:() => import('../src/views/frontVue/publish')
+        path:'/details',
+        name:'details',
+        component:() => import('../src/views/frontVue/details')
     },
+    {
+        path:'/curseDetail',
+        name:'curseDetail',
+        component:() => import('../src/views/frontVue/curseDetail')
+    },
+    {
+        path:'/pictureDetail',
+        name:'pictureDetail',
+        component:() => import('../src/views/frontVue/pictureDetail')
+    }
 
 
 ]

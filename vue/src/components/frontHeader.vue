@@ -5,7 +5,10 @@
       <div class="title">高校教学资源共享平台</div>
       <div class="infos">
         <el-menu background-color="white" text-color="black" color="black" :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
-          <el-menu-item v-for="item in headerMenu" :key="item.path" @click="clickMenu(item)">{{ item.lable }}</el-menu-item>
+<!--          管理员-->
+          <el-menu-item v-if="userInfo.identify==0" v-for="item in headerMenu" :key="item.path" @click="clickMenu(item)">{{ item.lable }}</el-menu-item>
+
+          <el-menu-item v-if="userInfo.identify==1" v-for="item in headerMenuCommon" :key="item.path" @click="clickMenu(item)">{{ item.lable }}</el-menu-item>
         </el-menu>
         <div class="line"></div>
       </div>
@@ -15,6 +18,8 @@
 </template>
 
 <script>
+import user from "@/views/user";
+
 export default {
   name: 'frontHeader',
   data() {
@@ -31,24 +36,49 @@ export default {
           name: 'userSelf',
           lable: '个人中心',
           url:'userSelf/userSelf'
-        }, {
-          path: '/home',
-          name: 'home',
+        },{
+          path: '/user',
+          name: 'user',
           lable: '后台管理',
-          url:'home/home'
+          url:'user/user'
         },
         {
-          path: '/exit',
-          name: 'exit',
+          path: '/login',
+          name: 'login',
           lable: '退出登录',
-          url:'exit/exit'
+          url:'login/login'
+        },
+      ],
+      headerMenuCommon:[
+        {
+          path: '/sourceShare',
+          name: 'sourceShare',
+          lable: '推荐',
+          url:'share/share'
+        },
+        {
+          path: '/userSelf',
+          name: 'userSelf',
+          lable: '个人中心',
+          url:'userSelf/userSelf'
+        },
+        {
+          path: '/login',
+          name: 'login',
+          lable: '退出登录',
+          url:'login/login'
         },
       ],
       userImg: require('@/assets/img/user.jpeg'),
       collapseMenu: false,
       activeIndex: '1',
-      activeIndex2: '1'
+      activeIndex2: '1',
+      userInfo:[]
     }
+  },
+  created() {
+    let userInfo = sessionStorage.getItem('user')
+    this.userInfo = JSON.parse(userInfo)
   },
   methods: {
     handleMenu() {
@@ -59,6 +89,7 @@ export default {
     },
     clickMenu(item){
       console.log('ss',item)
+
       this.$router.push({
         name:item.name
       })

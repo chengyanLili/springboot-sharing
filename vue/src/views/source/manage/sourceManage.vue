@@ -1,25 +1,35 @@
 <template>
   <div>
     <div class="search">
-      <el-input style="width: 200px;margin: 0 10px 10px 0" v-model="input" placeholder="请输入姓名"></el-input>
-      <el-button type="primary" style="height: 38px">搜索</el-button>
+      <el-input style="width: 200px;margin: 0 10px 10px 0" v-model="title" placeholder="请输入名称"></el-input>
+      <el-button @click="load" type="primary" style="height: 38px">搜索</el-button>
     </div>
     <el-card class="box-card">
       <el-table
           :data="tableData"
           border
-          style="width: 100%; height: 400px">
+          style="width: 100%"
+          height="500px"
+          max-height="500px">
         <el-table-column
-            prop="name"
-            label="资源名称">
+            prop="sourId"
+            label="文件id">
         </el-table-column>
         <el-table-column
             prop="title"
-            label="资源主题">
+            label="文件名称">
         </el-table-column>
         <el-table-column
-            prop="url"
-            label="url地址">
+            prop="brief"
+            label="文件主题">
+        </el-table-column>
+        <el-table-column
+            prop="type"
+            label="文件类型">
+        </el-table-column>
+        <el-table-column
+            prop="size"
+            label="文件大小(kb)">
         </el-table-column>
         <el-table-column
             fixed="right"
@@ -27,31 +37,39 @@
           <template slot-scope="scope">
             <el-button v-if="scope.row.state == 0" type="warning" size="small">审核中</el-button>
             <el-button v-if="scope.row.state == 1" type="primary" size="small">已发布</el-button>
+            <el-button v-if="scope.row.state == 2" type="danger" size="small">已退回</el-button>
           </template>
         </el-table-column>
         <el-table-column
             fixed="right"
             label="操作">
           <template slot-scope="scope">
-            <el-popconfirm
-                title="这是一段内容确定删除吗？"
-            >
             <el-button slot="reference" @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
-            </el-popconfirm>
-              <el-button style="margin-left: 20px" type="text" size="small">设为管理员</el-button>
+            <el-button style="margin-left: 10px" type="text" size="small" @click="check(scope.row.sourId)">审核</el-button>
           </template>
         </el-table-column>
       </el-table>
+      <el-dialog
+          title="审核"
+          :visible.sync="centerDialogVisible"
+          width="30%"
+          center>
+        <span slot="footer" class="dialog-footer">
+    <el-button @click="noPass()">退 回</el-button>
+    <el-button type="primary" @click="pass()">通 过</el-button>
+  </span>
+      </el-dialog>
       <!--   分页 -->
+
       <el-pagination
           style="padding-top: 15px"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
-          :current-page="currentPage4"
-          :page-sizes="[100, 200, 300, 400]"
-          :page-size="100"
+          :current-page="pageNum"
+          :page-sizes="[2, 5, 10, 20]"
+          :page-size="pageSize"
           layout="total, sizes, prev, pager, next, jumper"
-          :total="400">
+          :total="total">
       </el-pagination>
     </el-card>
   </div>
@@ -65,60 +83,106 @@ export default {
   name: 'sourceManage',
   data () {
     return {
-      formInline: {
-        user: '',
-        email: '',
-        city: '',
-        radio: '1',
-        nikeName: '',
-      },
       currentPage4: 4,
       value: '',
-      tableData: [
-        {
-          name:'尴尬',
-          title:'哈哈',
-          state:0
-        },
-        {
-          name:'略略略',
-          title:'呃呃',
-          state:1
-        }
-      ],
-      input:''
+      tableData: [],
+      title:'',
+      total: 0,
+      pageNum: 1,
+      pageSize: 5,
+      username: "",
+      input:'',
+      centerDialogVisible:false,
+      sourId:[],
+      submitTime:''
     }
   },
   created() {
     //请求数据
-    request.get("http://localhost:9090/user").then(res =>{
-      let userArr = res
-      userArr.forEach(item =>{
-        if(item.identify == 0){
-          item.identify = "管理员"
-          // console.log('管理员')
-        }else{
-          item.identify = "普通用户"
-          // console.log('普通用户')
-        }
-      })
-      this.tableData = userArr
-    })
+    this.sourInfo()
+  //  请求分页的数据
+    this.load()
   },
   methods: {
+    //分页查询
+    load(){
+      request("http://localhost:9090/file/page?pageNum="+this.pageNum+"&pageSize="+this.pageSize+"&title="+this.title)
+          .then(res => {
+            console.log('分页',res)
+            this.total = res.total
+            this.tableData = res.data
+          })
+    },
+    sourInfo(){
+      request.get("http://localhost:9090/file").then(res =>{
+        console.log('file',res)
+        this.tableData = res
+      })
+    },
     handleDelete(row) {
       console.log(row);
+      request.delete("http://localhost:9090/file/"+ row.sourId).then(res => {
+        console.log(res)
+        this.$message({
+          type: "success",
+          message: "删除成功"
+        })
+        this.sourInfo()
+      })
     },
-    onSubmit () {
-      console.log('submit!')
+    pass(){
+      //获取系统时间
+      this.getNowDate()
+      console.log(this.submitTime,'hhhh')
+      request.post("http://localhost:9090/file/check?checkRes=1"+"&sourId=" +this.sourId + "&submitTime=" + this.submitTime).then(()=>{
+        this.sourInfo()
+        //页面刷新
+        location.reload()
+        this.$message('审核通过')
+      }).catch(err=>{
+
+      })
+      this.centerDialogVisible=false
     },
-    handleSizeChange (val) {
-      console.log(`每页 ${val} 条`)
+    noPass(){
+      this.getNowDate()
+      console.log(this.submitTime,'hhhh')
+      request.post("http://localhost:9090/file/check?checkRes=2"+"&sourId=" +this.sourId + "&submitTime=" + this.submitTime).then(()=>{
+       this.sourInfo()
+
+        //页面刷新
+        location.reload()
+        this.message('已退回')
+      })
+      this.centerDialogVisible=false
     },
-    handleCurrentChange (val) {
-      console.log(`当前页: ${val}`)
+    check(sourId){
+      this.sourId = sourId
+      this.centerDialogVisible=true
+    },
+    getNowDate() {
+      const timeOne = new Date()
+      const year = timeOne.getFullYear()
+      let month = timeOne.getMonth() + 1
+      let day = timeOne.getDate()
+      let submitTime = `${year}-${month}-${day}`
+      this.submitTime =submitTime
+    },
+
+    handleSizeChange(pageSize) {
+      this.pageSize = pageSize
+      this.load()
+    },
+    handleCurrentChange(pageNum) {
+      this.pageNum = pageNum
+      this.load()
+    },
+    download(url){
+      window.open(url)
     }
-  }
+    }
+
+
 }
 
 </script>

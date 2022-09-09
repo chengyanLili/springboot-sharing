@@ -1,128 +1,106 @@
 <template>
-  <el-dialog :before-close="handleClose" title="用户注册" :visible.sync="dialogFormVisible" center>
-    <el-row type="flex" justify="center">
-      <el-form
-          ref="formData"
-          :model="formData"
-          :rules="rules"
-          label-width="80px"
+  <div style="width: 100%; height: 100vh; overflow: hidden">
+    <el-card style="width: 400px; margin: 150px auto">
+      <div style="font-size: 30px; text-align: center; padding: 30px 0">欢迎注册</div>
+        <el-form ref="form" :model="form" size="normal" :rules="rules">
+          <el-form-item prop="username">
+            <el-input prefix-icon="el-icon-user-solid" v-model="form.username" placeholder="请输入用户名"></el-input>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input prefix-icon="el-icon-lock" v-model="form.password" show-password placeholder="请输入密码"></el-input>
+          </el-form-item>
+          <el-form-item prop="confirm">
+            <el-input prefix-icon="el-icon-lock" v-model="form.confirm" show-password placeholder="请确认密码"></el-input>
+          </el-form-item>
+          <el-select v-model="value1" multiple multiple-limit="3" style="width: 400px; margin: 3px auto" placeholder="请选择三个感兴趣的领域">
+            <el-option
+                    v-for="item in options"
+                    :key="item.labelId"
+                    :label="item.name"
+                    :value="item.labelId">
+            </el-option>
+          </el-select>
+          <el-form-item>
+            <a style="float: right;margin-right: 20px" href="/login">已有账号？请登录</a>
+          </el-form-item>
+          <el-form-item>
+            <el-button style="width: 100%; margin: 20px auto" type="primary" @click="register">注 册</el-button>
+          </el-form-item>
+        </el-form>
+    </el-card>
 
-          @keyup.enter.native="register()"
-      >
-        <el-form-item prop="userName" label="用户名"
-        ><el-input
-            v-model="formData.userName"
-            placeholder="请输入用户名"
-            prefix-icon="el-icon-user"
-            clearable
-        ></el-input
-        ></el-form-item>
-        <el-form-item prop="password" label="密码"
-        ><el-input
-            v-model="formData.password"
-            placeholder="请输入密码"
-            type="password"
-            prefix-icon="iconfont icon-3702mima"
-            clearable
-        ></el-input
-        ></el-form-item>
-        <el-form-item prop="cheackPassword" label="确认密码"
-        ><el-input
-            v-model="formData.cheackPassword"
-            placeholder="再次输入密码"
-            type="password"
-            prefix-icon="iconfont icon-3702mima"
-            clearable
-        ></el-input
-        ></el-form-item>
-        <el-form-item>
-          <el-button
-              type="primary"
-              @click="register('formData')"
-              icon="el-icon-upload"
-          >注册</el-button
-          >
-          <el-button @click="resetForm('formData')"
-          >重置</el-button
-          ></el-form-item
-        >
-        <span class="tologin">  <router-link to="login">已有账户？立即登录</router-link></span>
-      </el-form>
-    </el-row>
-  </el-dialog>
+
+  </div>
+
 </template>
 
 <script>
+import request from "@/utils/request";
+
 export default {
+  name: "Register",
   data() {
-    var validatePass = (rule, value, callback) => {
-      if (value === "") {
-        callback(new Error("请再次输入密码"));
-      } else if (value !== this.formData.password) {
-        callback(new Error("两次输入密码不一致!"));
-      } else {
-        callback();
-      }
-    };
     return {
-      formData: {
-        userName: "",
-        password: "",
-        cheackPassword: "",
-      },
+      options: [],
+      value1: [],
+      form: {},
       rules: {
-        userName: [
-          { required: true, message: "用户名不能为空", trigger: "blur" },
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
         ],
         password: [
-          { required: true, message: "密码不能为空", trigger: "blur" },
+          { required: true, message: '请输入密码', trigger: 'blur' },
         ],
-        cheackPassword: [
-          { required: true, validator: validatePass, trigger: "blur" },
+        confirm: [
+          { required: true, message: '请确认密码', trigger: 'blur' },
         ],
-      },
-      registerForm: {
-        username: "",
-        password: "",
-      },
-      dialogTableVisible: true,
-      dialogFormVisible: true,
-    };
+      }
+    }
   },
-  methods: {
-    register(formName) {
-      this.$refs[formName].validate((valid) => {
+  created() {
+    this.load()
+  },
+  methods:{
+    register() {
+      if (this.form.password !== this.form.confirm) {
+        this.$message({
+          type: "error",
+          message: '2次密码输入不一致！'
+        })
+        return
+      }
+      this.$refs['form'].validate((valid) => {
         if (valid) {
-          this.$message({
-            type: "success",
-            message: "注册成功",
-          });
-          this.$router.push("/login");
-        } else {
-          console.log("error submit!!");
-          return false;
+          request.post("http://localhost:9090/user/register?username="+this.form.username+"&password="+this.form.password+"&labelId1="
+                  +this.value1[0]+"&labelId2="+this.value1[1]+"&labelId3="+this.value1[2]).then(res => {
+            console.log(res)
+            if (res.code === '0'){
+              this.$message({
+                type: "success",
+                message: "注册成功"
+              })
+              this.$router.push("/login")  //登录成功之后进行页面的跳转，跳转到主页
+            }else {
+              this.$message({
+                type: "error",
+                message: res.msg
+              })
+            }
+          })
         }
-      });
-    },
-    handleClose(done){
-      this.$confirm('确定退出注册吗？').then(() => {
-        // function(done)，done 用于关闭 Dialog
-        done();
+      })
 
-        this.$router.push("/login")
-      }).catch(() => {
-        console.log("点击确定时触发");
-      });
     },
+    load() {
+      request.get("http://localhost:9090/label").then(res =>{
+        this.options = res
+      })
+    }
 
-    resetForm(formName) {
-      this.$refs[formName].resetFields();
-    },
-  },
-};
-</script>
-<style>
-.tologin{
-  margin-left: 56%;
+  }
 }
+</script>
+
+<style scoped>
+
 </style>

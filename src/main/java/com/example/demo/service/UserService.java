@@ -7,14 +7,16 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-    @Autowired
+
+    @Autowired(required=false)
     private UserMapper userMapper;
-    public int save(User user){
-        if (user.getUser_id() == null){ //user没有id则表示新增
-           return userMapper.insert(user);
-        }else { //有则更新
-           return userMapper.update(user);
+
+    /*public int save(User user) {
+        if(user.getUserId() == null) { //user没有id，表示新增
+            return userMapper.insert(user);
+        } else { //否则表示更新
+            return userMapper.update(user);
         }
-    }
+    }*/
 
 }

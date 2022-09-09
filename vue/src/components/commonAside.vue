@@ -31,13 +31,13 @@ export default {
     data() {
         return {
             menu: [
-                {
-                    path: '/home',
-                    name: 'home',
-                    lable: '首页',
-                    icon: 's-home',
-                  url:'home/home'
-                },
+                // {
+                //     path: '/home',
+                //     name: 'home',
+                //     lable: '首页',
+                //     icon: 's-home',
+                //   url:'home/home'
+                // },
               {
                 path: '/sourceShare',
                 name: 'sourceShare',
@@ -52,13 +52,13 @@ export default {
                     icon: 'user-solid',
                    url:'user/user'
                 },
-              {
-                path: '/my',
-                name: 'my',
-                lable: '我的中心',
-                icon: 's-custom',
-                url:'my/my'
-              },
+              // {
+              //   path: '/my',
+              //   name: 'my',
+              //   lable: '个人中心',
+              //   icon: 's-custom',
+              //   url:'my/my'
+              // },
                 {
                   path:'/sourceManage',
                   name:'sourceManage',

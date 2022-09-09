@@ -10,16 +10,19 @@
       </el-carousel>
     </template>
   </div>
+<div class="search" style=" margin: 10px 10%;">
+  <el-input style="width: 200px;margin: 0 10px 10px 0" suffix-icon="el-icon-search" v-model="titleText" placeholder="请输入名称"></el-input>
+  <el-button class="ml-5" type="primary" @click="searchSour">搜索</el-button>
+</div>
 
-  <div class="type">视频资源</div>
-  <div class="line"></div>
-  <sharing :videoMenu="videoMenu"></sharing>
+  <sharing :videoMenu="videoMenu" :pictureMenu="pictureMenu" :documentMenu="documentMenu"></sharing>
 </div>
 </template>
 
 <script>
 import FrontHeader from "@/components/frontHeader";
 import sharing from "@/components/sharing";
+import request from "@/utils/request";
 
 export default {
   name: "sourceShare",
@@ -29,57 +32,32 @@ export default {
   },
   data(){
     return{
-      videoMenu:[
-        {
-          title:'晴天【周杰伦】',
-          author:'小恐龙',
-          submitTime:'2022-9-4',
-          click:57,
-          lickNum:10,
-          favorNum:2078,
-          commentNum:1,
-        },{
-          title:'七里香【周杰伦】',
-          author:'小恐龙',
-          submitTime:'2022-9-4',
-          click:89,
-          lickNum:10908,
-          favorNum:20,
-          commentNum:3
-        },{
-          title:'哈哈哈【周杰伦】',
-          author:'小恐龙',
-          click:43,
-          submitTime:'2022-9-4',
-          lickNum:101,
-          favorNum:2097,
-          commentNum:19
-        },{
-          title:'苹果【周杰伦】',
-          author:'小恐龙',
-          submitTime:'2022-9-4',
-          click:90,
-          lickNum:11,
-          favorNum:28,
-          commentNum:19
-        },{
-          title:'橘子【周杰伦】',
-          author:'小恐龙',
-          click:678,
-          submitTime:'2022-9-4',
-          lickNum:120,
-          favorNum:178,
-          commentNum:16
-        },{
-          title:'java【周杰伦】',
-          author:'小恐龙',
-          click:356,
-          submitTime:'2022-9-4',
-          lickNum:130,
-          favorNum:578,
-          commentNum:16
-        }
-      ],
+      videoMenu:[],
+      pictureMenu:[],
+      documentMenu:[],
+      titleText:'',
+      userInfo:[]
+    }
+  },
+  created() {
+    let userInfo = sessionStorage.getItem('user')
+    this.userInfo=JSON.parse(userInfo)
+    console.log(this.userInfo,'kk')
+    request.post("http://localhost:9090/file/calculate",this.userInfo).then(res =>{
+      console.log('file',res)
+      this.videoMenu = res.data.filter(item=> item.type === 'mp4' )
+      this.pictureMenu = res.data.filter(item=> item.type === 'jpeg' |item.type === 'jpg'|item.type === 'png' |item.type === 'gif')
+      this.documentMenu = res.data.filter(item=> item.type === 'txt' | item.type == 'docx' )
+    })
+  },
+  methods:{
+    searchSour(){
+      request("http://localhost:9090/file/search?searchText="+this.titleText).then((res) => {
+        console.log(res,'搜索返回的资源')
+        this.videoMenu = res.filter(item=> item.type === 'mp4' )
+        this.pictureMenu = res.filter(item=> item.type === 'jpeg' |item.type === 'jpg'|item.type === 'png' |item.type === 'gif')
+        this.documentMenu = res.filter(item=> item.type === 'txt' | item.type == 'docx' )
+      })
     }
   }
 }
@@ -103,13 +81,5 @@ export default {
 .el-carousel__item:nth-child(2n+1) {
   background-color: #d3dce6;
 }
-.line{
-  margin: 0 10% 5px 10%;
-  width: 65px;
-  height: 2px;
-  background-color: #7cbd7c;
-}
-.type{
-  margin: 0 10% 5px 10%;
-}
+
 </style>

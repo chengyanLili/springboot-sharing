@@ -1,118 +1,106 @@
 <template>
-  <div class="login_box">
-    <!-- 登录模块 -->
-    <el-form
-        ref="loginFormRef"
-        :model="loginForm"
-        :rules="loginFormRules"
-        label-width="0px"
-        class="login_form"
-    >
-      <!-- 用户名 -->
-      <el-form-item class="name" prop="username">
-        <el-input
-            v-model="loginForm.username"
-            prefix-icon="el-icon-user"
-        ></el-input>
-      </el-form-item>
-
-      <!-- 密码 -->
-      <el-form-item class="password" prop="password">
-        <el-input show-password
-            v-model="loginForm.password"
-            prefix-icon="el-icon-key"
-            type="password"
-        ></el-input>
-      </el-form-item>
-      <br /><br />
-      <!-- 按钮 -->
-      <el-form-item label-width="0px" class="btns">
-        <el-button type="primary" @click="login" round>登录</el-button>
-        <el-button type="info" @click="resetLoginForm" round>重置</el-button>
-      </el-form-item>
-      <el-form-item class="toreg">
-        <router-link to="register">没有账号？立即注册</router-link>
-        <el-button @click="toRegister" style="display: inline-block;margin-left: 10px" type="mini">注册</el-button>
-      </el-form-item>
-    </el-form>
-
+  <div style="width: 100%; height: 100vh; overflow: hidden;">
+    <el-card style="width: 400px; margin: 150px auto">
+      <div style="color: #030d2a; font-size: 30px; text-align: center; padding: 30px 0">欢迎登录</div>
+        <el-form ref="form" :model="form" size="normal" :rules="rules">
+          <el-form-item prop="username">
+            <el-input prefix-icon="el-icon-user-solid" v-model="form.username" placeholder="请输入用户名"></el-input>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input prefix-icon="el-icon-lock" v-model="form.password" show-password placeholder="请输入密码"></el-input>
+          </el-form-item>
+          <el-select v-model="value1" placeholder="请选择身份">
+            <el-option
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+            </el-option>
+          </el-select>
+          <el-form-item>
+            <a style="float: right;margin-right: 20px" href="/register">还没有账号？请注册</a>
+          </el-form-item>
+          <el-form-item>
+            <el-button style="width: 100%" type="primary" @click="login">登 录</el-button>
+          </el-form-item>
+        </el-form>
+    </el-card>
   </div>
 </template>
-
 <script>
+import request from "@/utils/request";
+
 export default {
+  name: "Login",
   data() {
     return {
-      //登录表单的数据绑定对象
-      loginForm: {
-        username: "admin",
-        password: "123456",
-      },
-      //表单验证规则对象
-      loginFormRules: {
-        //验证用户名是否合法
+      value1:[],
+      form: {},
+      rules: {
         username: [
-          { required: true, message: "请输入用户名", trigger: "blur" },
-          {
-            min: 3,
-            max: 10,
-            message: "长度在 3 到 10 个字符",
-            trigger: "blur",
-          },
+          { required: true, message: '请输入用户名', trigger: 'blur' },
         ],
-        //验证密码是否合法
         password: [
-          { required: true, message: "请输入密码", trigger: "blur" },
-          { min: 6, max: 16, message: "长度在6到16个字符", trigger: "blur" },
+          { required: true, message: '请输入密码', trigger: 'blur' },
+        ],
+        identify: [
+          { required: true, message: '请选择身份', trigger: 'blur' },
         ],
       },
-    };
-  },
-  methods: {
-    //重置登录表单
-    resetLoginForm() {
-      // console.log(this);
-      this.$refs.loginFormRef.resetFields();
-    },
-    toRegister(){
-      this.$router.push("/register")
+      options: [{
+        value:0,
+        label:'管理员',
+      },
+        {
+          value:1,
+          label:'普通用户',
+        }]
     }
   },
-};
+  created() {
+    sessionStorage.removeItem("user")
+    this.getUserInfo()
+  },
+  methods:{
+    login(){
+      console.log(this.value1)
+      this.$refs['form'].validate((valid) => {
+        // console.log('j',this.form)
+        if (valid) {
+          request.post("http://localhost:9090/user/login?username="+this.form.username+"&password="+this.form.password + "&identify="+this.value1).then(res => {
+            console.log(res)
+            if (res.code === '0'){
+              this.$message({
+                type: "success",
+                message: "登录成功"
+              })
+              sessionStorage.setItem("user",JSON.stringify(res.data)) // 缓存用户信息
+              if(this.value1==0){
+                this.$router.push("/user")  //登录成功之后进行页面的跳转，跳转到主页:管理员
+              }else{
+                this.$router.push("/sourceShare")  //登录成功之后进行页面的跳转，跳转到资源显示界面:普通用户
+              }
+
+            }else {
+              console.log('失败')
+              this.$message({
+                type: "error",
+                message: res.msg
+              })
+            }
+          })
+        }
+      })
+    },
+    getUserInfo(){
+      request.get("http://localhost:9090/user").then(res=>{
+        console.log(res)
+      })
+    }
+  }
+}
 </script>
 
-<style lang="less" scoped>
-.login_box {
+<style scoped>
 
-  width: 400px;
-  height: 350px;
-  background-color: aliceblue;
-  border-radius: 15px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.9;
-}
-.goRegister{
-  position: absolute;
-  margin-top:250px;
-  margin-left: 30px;
-}
-.login_form {
-  margin-top: 30px;
-  .name{
-    padding: 10px 20px;
-  }
-  .password{
-    padding: 0 20px;
-  }
-  .btns{
-    margin-left: 30%;
-  }
-  .toreg{
-    margin-left: 45%;
-  }
-}
 </style>
-
